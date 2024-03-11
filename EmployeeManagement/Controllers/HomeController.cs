@@ -1,9 +1,11 @@
 ﻿using EmployeeManagement.Models;
 using EmployeeManagement.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace EmployeeManagement.Controllers
 {
+
     public class HomeController : Controller
     {
         private readonly MockEmployeeRepository _empRepo;
@@ -12,32 +14,45 @@ namespace EmployeeManagement.Controllers
         {
             _empRepo = new MockEmployeeRepository();
         }
-
-        public ViewResult Index()
+        public ActionResult Index()
         {
-            var model = _empRepo.GetAllEmployee();
-            
-            return View(model);
+            return View();
         }
 
-        public ViewResult Details(int Id)
+        [HttpGet("Home/GetAll/{Id}")]
+        //Using JsonResult and Routing to pass Jsondata to View
+        public JsonResult GetAllEmployee(int Id)
         {
-            var model = _empRepo.GetEmployee(Id);
-
-            
-            var _empVM = new EmployeeViewModel()
+            try
             {
-                Id = model.Id,
-                Name = model.Name,
-                Email = model.Email,
-                Department = model.Department
-            };
-            
-            return View(_empVM);
+                if (Id == 0)
+                {
+                    var model = _empRepo.GetAllEmployee();
+                    return Json(new { success = true, data = model });
+                }
+                else
+                {
+                    var model = _empRepo.GetEmployee(Id);
+                    return Json(new { success = true, data = model });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    msg = ex.Message
+                });
+            }
         }
 
-        [HttpGet]
-        public ViewResult Edit(int?Id)
+        public ActionResult Details(int Id)
+        {
+            ViewData["EmpId"] = Id;
+            return View();
+        }
+
+        public ActionResult Edit(int? Id)
         {
             if (Id == null)
             {
@@ -46,43 +61,25 @@ namespace EmployeeManagement.Controllers
             else
             {
                 //get employee details
-                var _empModel = _empRepo.GetEmployee(1);
-                return View(_empModel);
+                var model = _empRepo.GetEmployee(Id.Value);
+                return View(model);
             }
         }
 
         [HttpPost]
         public IActionResult Edit(Employee employeeModel)
         {
-            if (employeeModel.Id > 0 )
-            {
-                //update employee
-                return View();
-            }
-            else
-            {
-                //add employee
-                return View();
-            }           
 
-            //save changes
-
-            //if changes saved return to index
-
-            //if changes failed return employ edit view
-
+            _empRepo.Update(employeeModel);
+            return RedirectToAction("Index");
         }
 
         public IActionResult Remove(int Id)
         {
-            //Remove Record
-
-            //Save changes
-
-            //Redirect to index
+            _empRepo.Remove(Id);
             return RedirectToAction("Index");
         }
 
-        
+
     }
 }
