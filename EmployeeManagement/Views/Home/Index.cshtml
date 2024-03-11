@@ -1,8 +1,10 @@
-﻿@model IEnumerable<Employee>
+﻿@{
+    Layout = "_Layout"; // Using the Partial View 
+}
+
 <div class="text-center">
     <h1>Home</h1>
-
-    <table class="table table-striped">
+    <table class="table table-striped" id="tbl_emp">
         <thead class="thead-dark">
             <tr>
                 <th scope="col">Id</th>
@@ -12,33 +14,58 @@
                 <th scope="col"></th>
             </tr>
         </thead>
-        <tbody>
-            @foreach (var employee in Model)
-            {
-                <tr>
-                    <td>@employee.Id</td>
-                    <td>@employee.Name</td>
-                    <td>@employee.Department</td>
-                    <td>@employee.Email</td>
-                    <td>
-                        <a asp-controller="Home" asp-action="Details" asp-route-id="@employee.Id" class="btn-sm btn-primary">View <i class="fa fa-eye" aria-hidden="true"></i></a>
-
-                        <a asp-controller="Home" asp-action="Edit" asp-route-id="@employee.Id" class="btn-sm btn-primary">Edit <i class="fa fa-edit" aria-hidden="true"></i></a>
-
-                        <a asp-controller="Home" asp-action="Remove" asp-route-id="@employee.Id" class="btn-sm btn-danger">Remove <i class="fa fa-remove" aria-hidden="true"></i></a>
-                    </td>
-                </tr>
-            }
-
-        </tbody>
+        <tbody id="tbl_empbody"></tbody>
     </table>
-
-    
-
 </div>
+
+
+<script type="text/javascript">
+    // Function to load all employees on page load
+    $(document).ready(function() {
+        BindEmptable();
+    });
+
+    //Function to add rows dynamically
+
+    function BindEmptable() {
+        $.ajax({
+            url: 'Home/GetAll/' + 0,
+            type: 'GET',
+            // data: { Id: 0 },
+            dataType: 'json',
+            success: function(result) {
+                debugger;
+                if (result.success == true) {
+                    var tblemployee = $('#tbl_empbody');
+                    tblemployee.empty();
+                    var data = result.data;
+                    $.each(data, function(index, item) {
+                        var empHtml = '<td ><a id=' + item.id + ' class="btn-sm btn-primary" onclick="GetDetails(' + item.id + ')"> View <i class="fa fa-eye" aria-hidden="true" ></i></a>';
+                        empHtml += ' <a id=' + item.id + ' class="btn-sm btn-primary" onclick="GotoEditDetails(' + item.id + ')" >Edit <i class="fa fa-edit" aria-hidden="true"></i></a>';
+                        empHtml += '<a id=' + item.id + ' class="btn-sm btn-danger" > Remove <i class="fa fa-remove" aria-hidden="true"></i></a>';
+                        tblemployee.append('<tr><td>' + item.id + '</td><td>' + item.name + '</td><td>' + item.department + '</td><td>' + item.email + '</td>' + empHtml + '</tr>');
+                    });
+                }
+                 else {
+                    alert(result.msg);
+                }
+            }
+        });
+    }
+
+    function GetDetails(empid) {
+        window.location.href = "Home/Details?Id=" + empid;
+    }
+    function GotoEditDetails(empid) {
+        window.location.href = "Home/Edit?Id=" + empid;
+    }
+
+</script>
+
 @section Scripts {
 
     <script src="~/js/Home.js"></script>
-   
+
 
 }
+

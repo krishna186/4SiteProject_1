@@ -1,22 +1,59 @@
-﻿@model EmployeeViewModel
+﻿@{
+    Layout = "_Layout"; // Using the Partial View 
+}
 
-<div class="text-center">
+}
 
-    <div class="card" style="width: 18rem;">
-        @*<img class="card-img-top" src=".../100px180/" alt="Card image cap">*@
-        <img class="card-img-top" src="~/images/BankImage.svg" alt="Card image cap" asp-append-version="true" />
-        <div class="card-body">
-            <h5 class="card-title">Employee</h5>
-            <p>Name: @Model.Name</p>
-            <p>Department: @Model.Department</p>
-            <p>Email: @Model.Email</p>
+<div class="text-center" id="empDetails">
+    <!-- Emp details will be loaded here dynamically -->
+</div>
+
+<script type="text/javascript">
+
+    $(document).ready(function() {
+        getEmpDetails();
+    });
+
+    //  AJAX request to fetch employee details
+    function getEmpDetails() {
+        $.ajax({
+            url: 'GetAll/' + @ViewData["EmpId"].ToString(),
+            type: 'GET',
+            dataType: 'json',
+            success: function(result) {
+                if (result.success == true) {
+                    BindEmpDetails(result.data);
+                }
+                else {
+                    alert(result.msg);
+                }
+            }
+        });
+    }
+
+    // Bind emp details in the card template
+    function BindEmpDetails(data) {
+        var employeeDetails = document.getElementById('empDetails');
+        employeeDetails.innerHTML = `
+                                            <div class="card" style="width: 18rem;">
+                                                <img class="card-img-top" src="~/images/BankImage.svg" alt="Card image cap">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">Employee</h5>
+                                                    <p>Name: ${data.name}</p>
+                                                    <p>Department: ${data.department}</p>
+                                                    <p>Email: ${data.email}</p>
+                                                    <a href="Index" class="btn btn-primary">Back</a>
+                                                    <a class="btn btn-primary" onclick = GotoEdit()>Edit</a>
+                                                    <a href="/home/delete" class="btn btn-primary">Delete</a>
+                                                </div>
+                                            </div>
+                                        `;
+    }
+
+    function GotoEdit() {
+        window.location.href = "Edit?Id=" + @ViewData["EmpId"].ToString();
+    }
 
 
-            <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Back</a>
-            <a asp-controller="Home" asp-action="Edit" class="btn btn-primary">Edit</a>
-            <a asp-controller="Home" asp-action="Delete" class="btn btn-primary">Delete</a>
-        </div>
-    </div>
 
-    
-    </div>
+</script>
